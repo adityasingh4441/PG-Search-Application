@@ -1,0 +1,11 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - pg-search-mongo:/data/db
+
+volumes:
+  pg-search-mongo:
