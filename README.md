@@ -1,75 +1,122 @@
 # Roomroot PG Search
 
-A full-stack PG discovery MVP for students and property owners. The frontend lives in `frontend/` and the REST API lives in `backend/`.
+<div align="center">
+	<h1>Find a place that feels like yours.</h1>
+	<p><strong>A PG discovery app for students near GLA University.</strong></p>
+	<p>
+		<img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white" />
+		<img alt="Node.js 20.19+" src="https://img.shields.io/badge/Node.js-20.19%2B-43853D?logo=node.js&logoColor=white" />
+		<img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-8-47A248?logo=mongodb&logoColor=white" />
+		<img alt="Vite" src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white" />
+		<img alt="Express" src="https://img.shields.io/badge/API-Express-222222?logo=express&logoColor=white" />
+	</p>
+</div>
 
-## What works
+<p align="center">
+	<img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1800&q=85" alt="A bright shared living room featured in Roomroot PG Search" width="100%" />
+</p>
 
-- Student and owner registration, login, JWT-protected routes, and role checks.
-- Search by keyword and area, with rent, gender, amenity, and sort filters.
-- Approved listing details, favorites, reviews, and student-to-owner enquiries.
-- Owner listing submission and enquiry inbox; edits return a listing to review.
-- Admin approval/rejection queue. Pending and rejected listings stay out of public search.
-- Student profile and search-preference editing, password changes with session revocation, recently viewed PGs, and review history.
-- Enquiry message threads between the student and listing owner, notification inbox, and student-submitted PG safety reports.
-- MongoDB text and geospatial indexes, plus a nearby-listing API.
-- Responsive React interface and a local MongoDB Docker Compose service.
+Roomroot helps students find a stay by name, neighborhood, rent, and amenities. Owners can list a PG, manage enquiries, and follow listing reviews. The app includes a responsive React frontend, Express API, and MongoDB-backed data.
 
-The map preview uses Google Maps when `VITE_GOOGLE_MAPS_API_KEY` is configured; without a key it uses an interactive OpenStreetMap preview. Enquiry messages are threaded but are not live Socket.io chat. Direct image uploads, advanced user/report moderation, CI/CD, and cloud deployment are not included in this MVP. Listing images currently accept an image URL.
+## Highlights
 
-## Requirements
+| Discover | Manage | Stay informed |
+| --- | --- | --- |
+| PG search by name and location | Student and owner accounts | Enquiry message threads |
+| Rent, gender, and amenity filters | Saved and recently viewed PGs | In-app notifications |
+| Nearby PGs with distance and map | Reviews and owner listing tools | Safety reports |
+| Interactive map markers | Admin approval queue | Secure logout and password changes |
 
-- Node.js 20.19+ or 22.12+ and npm
-- Docker Desktop, or a MongoDB server reachable at `MONGODB_URI`
+The map uses Google Maps when `VITE_GOOGLE_MAPS_API_KEY` is set; otherwise, it uses an interactive OpenStreetMap preview. Enquiry messages are threaded, but are not live Socket.io chat. Listing images currently use URLs rather than direct uploads.
 
-## Run locally
+## Quick Start
 
-1. Copy `.env.example` to `.env`. Set `JWT_SECRET` to a long random value and replace `SEED_PASSWORD` with a throwaway local password.
-2. Start MongoDB: `docker compose up -d mongo`
-3. Install dependencies from the project root: `npm install`
-4. Load local demo accounts and six approved sample stays: `npm run seed`
-5. Start frontend and backend together: `npm run dev`
-6. Open the frontend URL printed by Vite (normally `http://localhost:5173`). The frontend proxies `/api` to the backend, so another Vite port works too. The API health endpoint is available at `/api/health` through the frontend or at `http://localhost:4000/api/health` directly.
+### Requirements
 
-The seed command creates three local accounts using the same `SEED_PASSWORD`:
+- Node.js `20.19+` or `22.12+`, with npm
+- Docker Desktop, or a MongoDB server reachable through `MONGODB_URI`
 
-- Admin: `admin@roomroot.local`
-- Owner: `owner@roomroot.local`
-- Student: `student@roomroot.local`
+### Run locally
 
-New users can also register from the interface. Admin accounts are intentionally not available through public registration.
+```bash
+git clone https://github.com/adityasingh4441/PG-Search-Application.git
+cd PG-Search-Application
+cp .env.example .env
+```
 
-If MongoDB is unavailable, the web app still starts and shows an API/database connection message. The seed command requires MongoDB.
+Edit `.env`: set a long `JWT_SECRET` and a throwaway `SEED_PASSWORD`. Then start the database and app:
+
+```bash
+docker compose up -d mongo
+npm install
+npm run seed
+npm run dev
+```
+
+Open the frontend URL printed by Vite, normally [http://localhost:5173](http://localhost:5173). If that port is already in use, Vite may select another one; the same-origin `/api` proxy keeps the frontend connected. Check API health at `/api/health`.
+
+### Demo accounts
+
+The seed script creates these local accounts. All three use the `SEED_PASSWORD` value from `.env`.
+
+| Role | Email |
+| --- | --- |
+| Admin | `admin@roomroot.local` |
+| Owner | `owner@roomroot.local` |
+| Student | `student@roomroot.local` |
+
+New students and owners can also register in the app. Admin accounts are not available through public registration.
+
+## Architecture
+
+```mermaid
+flowchart LR
+	Browser[React + Vite] -->|/api same-origin proxy| API[Express API]
+	API --> Mongo[(MongoDB)]
+	Browser -->|Map tiles and geocoding| OSM[OpenStreetMap]
+	Browser -. optional API key .-> Google[Google Maps]
+```
+
+The project is organized as npm workspaces: `frontend/` contains the React app, and `backend/` contains the REST API and MongoDB models.
 
 ## Environment
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `PORT` | Express API port | `4000` |
-| `CLIENT_ORIGIN` | Comma-separated allowed browser origins for direct API requests | Local Vite ports `5173` and `5174` |
+| `CLIENT_ORIGIN` | Comma-separated allowed origins for direct API requests | Local Vite ports `5173` and `5174` |
 | `MONGODB_URI` | MongoDB connection string | `mongodb://127.0.0.1:27017/pg_search` |
-| `JWT_SECRET` | JWT signing secret | Development fallback; replace it before use |
-| `SEED_PASSWORD` | Shared password for local seed accounts | Required by `npm run seed` |
-| `BACKEND_URL` | Backend target for the Vite `/api` proxy | `http://localhost:4000` |
-| `VITE_API_URL` | Optional direct API base URL; normally leave as `/api` | `/api` |
-| `VITE_GOOGLE_MAPS_API_KEY` | Optional Google Maps JavaScript API key; OpenStreetMap is used when unset | Unset |
+| `JWT_SECRET` | JWT signing secret | Development fallback; replace it outside local development |
+| `SEED_PASSWORD` | Shared password for seeded accounts | Required by `npm run seed` |
+| `BACKEND_URL` | Target for the Vite `/api` development proxy | `http://localhost:4000` |
+| `VITE_API_URL` | Optional direct API URL; normally leave as `/api` | `/api` |
+| `VITE_GOOGLE_MAPS_API_KEY` | Optional Google Maps key; OpenStreetMap is used when unset | Unset |
 
-Vite reads `VITE_` variables at build time. In development, Vite proxies same-origin `/api` requests to `BACKEND_URL`, which avoids CORS issues if its port changes. For production, route `/api` through the same-origin reverse proxy or set `VITE_API_URL` to the deployed API URL. Copy `frontend/.env.example` to `frontend/.env.local` to configure a direct API URL or Google Maps. Google Maps requires an enabled Maps JavaScript API key; keep its referrer restrictions enabled.
+Vite reads `VITE_` values at build time. Development requests use the Vite proxy. In production, route `/api` through a same-origin reverse proxy or set `VITE_API_URL` to the deployed API URL. To configure frontend values, copy `frontend/.env.example` to `frontend/.env.local`. Restrict Google Maps keys to the deployed referrers.
 
-## API outline
+## API Overview
 
-- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- `GET /api/pgs`, `GET /api/pgs/nearby`, `GET /api/pgs/:id`, `GET /api/pgs/:id/reviews`
-- `POST /api/pgs`, `PUT /api/pgs/:id`, `DELETE /api/pgs/:id`
-- `POST /api/pgs/:id/favorite`, `GET /api/pgs/favorites`
-- `POST /api/pgs/:id/reviews`, `POST /api/enquiries`, `GET /api/enquiries`, `POST /api/enquiries/:id/messages`
-- `GET/PATCH /api/profile`, `PATCH /api/profile/password`, `GET /api/profile/reviews`, `GET/POST /api/profile/recently-viewed`
-- `GET /api/notifications`, `PATCH /api/notifications/read-all`, `PATCH /api/notifications/:id/read`
-- `GET/POST /api/reports`
-- `GET /api/pgs/mine`, `PATCH /api/enquiries/:id/status`
-- `GET /api/admin/pgs/pending`, `PATCH /api/admin/pgs/:id/approve`, `PATCH /api/admin/pgs/:id/reject`
+| Area | Main endpoints |
+| --- | --- |
+| Authentication | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` |
+| PG discovery | `GET /api/pgs`, `GET /api/pgs/nearby`, `GET /api/pgs/:id`, `GET /api/pgs/:id/reviews`, `GET /api/pgs/favorites` |
+| Owner listings | `POST /api/pgs`, `GET /api/pgs/mine`, `PUT/DELETE /api/pgs/:id` |
+| Enquiries | `POST/GET /api/enquiries`, `POST /api/enquiries/:id/messages`, `PATCH /api/enquiries/:id/status` |
+| Profile | `GET/PATCH /api/profile`, `PATCH /api/profile/password`, `GET /api/profile/reviews`, `GET/POST /api/profile/recently-viewed` |
+| Activity | `GET /api/notifications`, `GET/POST /api/reports` |
+| Admin | `GET /api/admin/pgs/pending`, `PATCH /api/admin/pgs/:id/approve`, `/reject` |
 
-Search supports `q`, `name`, `area`, `minRent`, `maxRent`, `gender`, `amenity`, `amenities`, `sort`, `page`, and `limit`. Sort values are `newest`, `price_asc`, `price_desc`, and `rating`.
+Search supports `q`, `name`, `area`, `minRent`, `maxRent`, `gender`, `amenity`, `amenities`, `sort`, `page`, and `limit`. Sort values: `newest`, `price_asc`, `price_desc`, and `rating`.
 
-## Production notes
+## Scripts
 
-Set unique secrets and database credentials through the host's environment manager, set `CLIENT_ORIGIN` to the deployed frontend origin, and serve the frontend/API over HTTPS. The local seed password and development JWT fallback are not production credentials. Image URL validation/storage, refresh-token rotation, full map/chat integrations, tests, monitoring, and deployment automation should be added before a production launch.# PG-Search-Application
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the API and frontend together |
+| `npm run seed` | Add demo accounts and six approved sample PGs |
+| `npm run build` | Build the frontend for production |
+| `npm start` | Start the backend API |
+
+## Production Notes
+
+Set unique secrets and database credentials in the host environment, configure `CLIENT_ORIGIN` for direct cross-origin requests, and serve traffic over HTTPS. The local seed password and development JWT fallback are not production credentials. Direct image uploads, advanced report moderation, refresh-token rotation, real-time chat, tests, monitoring, and deployment automation are outside this MVP's scope.
