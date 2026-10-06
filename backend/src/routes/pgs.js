@@ -11,6 +11,7 @@ const validateListing = [
   body('name').trim().isLength({ min: 3, max: 120 }).withMessage('PG name must be 3 to 120 characters'),
   body('description').trim().isLength({ min: 10, max: 4000 }).withMessage('Add a description of at least 10 characters'),
   body('address').trim().notEmpty().withMessage('Address is required'),
+  body('city').trim().isLength({ min: 2, max: 100 }).withMessage('Enter a city between 2 and 100 characters'),
   body('area').trim().notEmpty().withMessage('Area is required'),
   body('rent').isFloat({ min: 0 }).withMessage('Rent must be a positive amount'),
   body('deposit').optional().isFloat({ min: 0 }).withMessage('Deposit cannot be negative'),
@@ -46,6 +47,13 @@ router.get('/', async (request, response, next) => {
     const limit = Math.min(48, Math.max(1, Number.parseInt(request.query.limit, 10) || 12));
     const filter = { status: 'approved' };
     if (request.query.q) filter.$text = { $search: String(request.query.q).slice(0, 100) };
+    if (request.query.city) {
+      const city = String(request.query.city).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { city: new RegExp(`^${city}$`, 'i') },
+        { city: { $exists: false }, address: new RegExp(city, 'i') }
+      ];
+    }
     if (request.query.name) filter.name = new RegExp(String(request.query.name).slice(0, 100).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     if (request.query.area) filter.area = new RegExp(String(request.query.area).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     if (request.query.gender && ['Any', 'Women', 'Men'].includes(request.query.gender)) filter.gender = request.query.gender;

@@ -16,6 +16,7 @@ const pgSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: 120 },
   description: { type: String, required: true, trim: true, maxlength: 4000 },
   address: { type: String, required: true, trim: true },
+  city: { type: String, trim: true, maxlength: 100, index: true },
   area: { type: String, required: true, trim: true, index: true },
   location: { type: locationSchema, default: undefined },
   rent: { type: Number, required: true, min: 0, index: true },
@@ -31,7 +32,7 @@ const pgSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true }
 }, { timestamps: true });
 
-pgSchema.index({ name: 'text', area: 'text', address: 'text', description: 'text' });
+pgSchema.index({ name: 'text', city: 'text', area: 'text', address: 'text', description: 'text' });
 pgSchema.index({ location: '2dsphere' });
 
 export default mongoose.model('PG', pgSchema);

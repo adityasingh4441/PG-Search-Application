@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 
 const amenities = ['Wi-Fi', 'Meals', 'AC', 'Laundry', 'Parking', 'Housekeeping'];
+const cities = ['Delhi', 'Noida', 'Greater Noida', 'Gurugram', 'Bangalore', 'Mumbai', 'Pune', 'Ghaziabad', 'Hyderabad', 'Chennai', 'Faridabad', 'Mathura'];
 
 export default function ListingDialog({ onClose, onSubmit }) {
   const [error, setError] = useState('');
@@ -34,7 +35,8 @@ export default function ListingDialog({ onClose, onSubmit }) {
         <p className="dialog-intro">New listings are reviewed before they appear in search.</p>
         <form className="stack-form listing-form" onSubmit={submit}>
           <label>Property name<input name="name" placeholder="e.g. The Banyan House" minLength="3" required /></label>
-          <div className="form-row"><label>Neighbourhood<input name="area" placeholder="Civil Lines" required /></label><label>Gender preference<select name="gender"><option>Any</option><option>Women</option><option>Men</option></select></label></div>
+          <div className="form-row"><label>City<input name="city" list="listing-cities" placeholder="e.g. Noida" maxLength="100" required /><datalist id="listing-cities">{cities.map((city) => <option key={city} value={city} />)}</datalist></label><label>Neighbourhood<input name="area" placeholder="e.g. Sector 62" required /></label></div>
+          <label>Gender preference<select name="gender"><option>Any</option><option>Women</option><option>Men</option></select></label>
           <label>Street address<input name="address" placeholder="Street, landmark, city" required /></label>
           <label>A little about the place<textarea name="description" rows="3" minLength="10" placeholder="Rooms, atmosphere, nearby campus…" required /></label>
           <div className="form-row"><label>Monthly rent (₹)<input name="rent" type="number" min="0" required /></label><label>Deposit (₹)<input name="deposit" type="number" min="0" defaultValue="0" /></label><label>Open rooms<input name="availability" type="number" min="0" defaultValue="1" /></label></div>

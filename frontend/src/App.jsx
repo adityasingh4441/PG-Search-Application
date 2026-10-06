@@ -8,7 +8,22 @@ import ProfileDashboard from './components/ProfileDashboard.jsx';
 import { api, imageFor, money } from './lib/api.js';
 
 const GLA_CENTER = { lat: 27.6084, lng: 77.5881 };
-const initialFilters = { q: '', name: '', area: '', minRent: '', maxRent: '', gender: '', amenity: '', amenities: [], sort: 'newest' };
+const initialFilters = { q: '', name: '', area: '', city: '', minRent: '', maxRent: '', gender: '', amenity: '', amenities: [], sort: 'newest' };
+const cityCards = [
+  { name: 'Delhi', subtitle: 'Fast-growing superb', image: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Noida', subtitle: 'Newest launch', image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Greater Noida', subtitle: 'Growing IT corridor', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Gurugram', subtitle: 'Where life begins', image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Bangalore', subtitle: 'Whitefield & beyond', image: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Mumbai', subtitle: 'Financial capital', image: 'https://images.unsplash.com/photo-1529253355930-ddbe423a2ac7?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Pune', subtitle: 'Rising city hub', image: 'https://images.unsplash.com/photo-1544735716-392feef6f0b2?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Ghaziabad', subtitle: 'NCR’s next hotspot', image: 'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Hyderabad', subtitle: 'Booming tech hub', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Chennai', subtitle: 'South India’s gateway', image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Faridabad', subtitle: 'Affordable & well-connected', image: 'https://images.unsplash.com/photo-1520923642038-b4259acecbd7?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Mathura', subtitle: 'Home near GLA University', image: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80' },
+  { name: 'Pan India', subtitle: 'Search across all India', image: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=900&q=80' }
+];
 
 function distanceFromGla(item) {
   const coordinates = item.location?.coordinates;
@@ -88,7 +103,7 @@ function PGDetails({ item, favorite, user, onFavorite, onClose, onEnquire }) {
         <div className="detail-photo">{image ? <img src={image} alt={`${item.name} interior`} /> : <span className="image-placeholder detail-placeholder"><span>RR</span><small>{item.area}</small></span>}</div>
         <div className="detail-content">
           <div className="detail-topline"><span className="verified-mark inline"><span className="verified-dot" /> Verified stay</span><button className={`text-icon ${favorite ? 'is-favorite-text' : ''}`} onClick={() => onFavorite(item._id)}><Heart size={17} fill={favorite ? 'currentColor' : 'none'} /> {favorite ? 'Saved' : 'Save stay'}</button></div>
-          <div className="detail-title-row"><div><p className="eyebrow">{item.gender === 'Any' ? 'All genders' : `${item.gender} only`} · {item.area}</p><h2 id="detail-title">{item.name}</h2></div><p className="detail-rating">★ {item.rating?.toFixed(1) || 'New'} <small>({item.reviewCount || 0} reviews)</small></p></div>
+          <div className="detail-title-row"><div><p className="eyebrow">{item.gender === 'Any' ? 'All genders' : `${item.gender} only`} · {[item.area, item.city].filter(Boolean).join(', ')}</p><h2 id="detail-title">{item.name}</h2></div><p className="detail-rating">★ {item.rating?.toFixed(1) || 'New'} <small>({item.reviewCount || 0} reviews)</small></p></div>
           <p className="detail-address"><MapPin size={15} /> {item.address}</p>
           <p className="detail-description">{item.description}</p>
           <div className="detail-amenities">{(item.amenities || []).map((amenity) => <span key={amenity}>{amenity}</span>)}</div>
@@ -127,6 +142,7 @@ function InfoDialog({ type, onClose, onAction }) {
 
 export default function App() {
   const [screen, setScreen] = useState('discover');
+  const [cityPage, setCityPage] = useState('');
   const [filters, setFilters] = useState(initialFilters);
   const [items, setItems] = useState([]);
   const [nearbyItems, setNearbyItems] = useState([]);
@@ -157,6 +173,10 @@ export default function App() {
     if (currentState?.roomroot) {
       historyIndex.current = currentState.index || 0;
       setScreen(currentState.screen || 'discover');
+      setCityPage(currentState.city || '');
+      if (currentState.screen === 'city' && currentState.city) {
+        setFilters({ ...initialFilters, city: currentState.city === 'Pan India' ? '' : currentState.city });
+      }
       setDetailState(currentState.detail || null);
       setDialogState(currentState.dialog || '');
       setInfoDialogState(currentState.infoDialog || '');
@@ -168,6 +188,10 @@ export default function App() {
       const nextState = event.state?.roomroot ? event.state : initialState;
       historyIndex.current = nextState.index || 0;
       setScreen(nextState.screen || 'discover');
+      setCityPage(nextState.city || '');
+      if (nextState.screen === 'city' && nextState.city) {
+        setFilters({ ...initialFilters, city: nextState.city === 'Pan India' ? '' : nextState.city });
+      }
       setDetailState(nextState.detail || null);
       setDialogState(nextState.dialog || '');
       setInfoDialogState(nextState.infoDialog || '');
@@ -252,6 +276,18 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function openCity(city) {
+    pushAppState({ screen: 'city', city });
+    setCityPage(city);
+    setScreen('city');
+    setFilters({ ...initialFilters, city: city === 'Pan India' ? '' : city });
+    setLocationQuery(`${city}, India`);
+    setNameQuery('');
+    setError('');
+    setMobileMenu(false);
+    window.scrollTo({ top:  0, behavior: 'smooth' });
+  }
+
   function openDialog(type) {
     pushAppState({ dialog: type, detail: null, infoDialog: '' });
     setDialogState(type);
@@ -297,6 +333,8 @@ export default function App() {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const query = String(data.get('location') || '').trim();
+    const normalizedCity = query.replace(/,\s*India$/i, '').trim().toLowerCase();
+    const selectedCity = cityCards.find((city) => city.name.toLowerCase() === normalizedCity)?.name || '';
     const pgName = String(data.get('pgName') || '').trim();
     const minRent = Number(data.get('minRent'));
     const maxRent = Number(data.get('maxRent'));
@@ -312,9 +350,10 @@ export default function App() {
       setError('');
       setFilters((current) => ({
         ...current,
-        q: /gla university/i.test(query) ? '' : query,
+        q: /gla university/i.test(query) || selectedCity ? '' : query,
         name: pgName,
         area: '',
+        city: selectedCity === 'Pan India' ? '' : selectedCity,
         minRent: String(data.get('minRent') || ''),
         maxRent: String(data.get('maxRent') || '')
       }));
@@ -487,6 +526,61 @@ export default function App() {
             </div>
           </section>
 
+          <section className="city-section">
+            <div className="city-header">
+              <p className="eyebrow">WHERE WE OPERATE</p>
+              <h2>Cities We Call Home</h2>
+              <p>Find your next residence in India&apos;s leading hubs.</p>
+            </div>
+            <div className="city-grid">
+              {cityCards.map((city) => (
+                <button
+                  key={city.name}
+                  type="button"
+                  className="city-card"
+                  style={{ backgroundImage: `linear-gradient(180deg, rgba(17, 17, 17, 0.06), rgba(6, 5, 5, 0.45)), url(${city.image})` }}
+                  onClick={() => openCity(city.name)}
+                >
+                  <span>{city.name}</span>
+                  <small>{city.subtitle}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="top-picks-section" aria-label="Popular PGs">
+            <div className="top-picks-header">
+              <div>
+                <p className="eyebrow">TOP PICKS</p>
+                <h2>Popular PGs</h2>
+              </div>
+              <button type="button" className="button button-outline top-picks-button" onClick={goToSearch}>View All <ArrowRight size={16} /></button>
+            </div>
+            <div className="top-picks-grid">
+              {(visibleItems.length ? visibleItems : [
+                { _id: 'fallback-1', name: 'Sunrise Residency', area: 'Mathura', rent: 8500, rating: 4.8, amenity: 'Wi-Fi', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80' },
+                { _id: 'fallback-2', name: 'Oakwood Nest', area: 'Noida', rent: 12000, rating: 4.7, amenity: 'Meals', image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+                { _id: 'fallback-3', name: 'Green Terrace', area: 'Greater Noida', rent: 9500, rating: 4.6, amenity: 'AC', image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80' },
+                { _id: 'fallback-4', name: 'City Light Stay', area: 'Gurugram', rent: 13500, rating: 4.9, amenity: 'Parking', image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=80' }
+              ]).slice(0, 4).map((item) => { const thumb = imageFor(item) || item.image; return (
+                <article key={item._id} className="top-pick-card" onClick={() => setDetail(item)}>
+                  <div className="top-pick-image" style={{ backgroundImage: `url(${thumb})` }} />
+                  <div className="top-pick-body">
+                    <div className="top-pick-meta">
+                      <span>{[item.area, item.city].filter(Boolean).join(', ') || 'Near campus'}</span>
+                      <span>★ {item.rating?.toFixed(1) || '4.8'}</span>
+                    </div>
+                    <h3>{item.name}</h3>
+                    <div className="top-pick-bottom">
+                      <strong>{money(item.rent || 8500)}</strong>
+                      <small>{item.amenity || 'Wi-Fi'}</small>
+                    </div>
+                  </div>
+                </article>
+              ); })}
+            </div>
+          </section>
+
           <section className="why-section" id="about-roomroot">
             <div className="why-intro"><p className="eyebrow">A BETTER WAY TO FIND HOME</p><h2>More than a room.<br /><em>A good start.</em></h2></div>
             <div className="why-grid">
@@ -504,11 +598,25 @@ export default function App() {
         </main>
       </>}
 
+      {screen === 'city' && <main className="workspace-page city-results-page">
+        <button className="button button-outline city-back-button" onClick={() => { setFilters(initialFilters); setLocationQuery('GLA University, Mathura'); setNameQuery(''); window.history.back(); }}>
+          <ArrowRight className="back-arrow" size={16} /> Back to home
+        </button>
+        <div className="workspace-heading">
+          <p className="eyebrow">EXPLORE STUDENT STAYS</p>
+          <h1>PGs in {cityPage}<span>.</span></h1>
+          <p>{cityPage === 'Pan India' ? 'Discover verified stays across India.' : `Find verified places to stay in ${cityPage}.`}</p>
+        </div>
+        <div className="results-count"><span>{loading ? 'Finding places…' : `${visibleItems.length} ${visibleItems.length === 1 ? 'stay' : 'stays'} in ${cityPage}`}</span><span>Only admin-approved listings appear here</span></div>
+        {error && <div className="connection-error"><CircleHelp size={19} /><div><b>We couldn’t load the stays.</b><p>{error}</p></div><button className="icon-button" onClick={() => setFilters((current) => ({ ...current }))} aria-label="Retry"><ArrowRight size={17} /></button></div>}
+        {loading ? <div className="loading-row"><span /><span /><span /></div> : visibleItems.length ? <div className="pg-grid">{visibleItems.map((item) => <PGCard key={item._id} item={item} favorite={saved.includes(item._id)} onFavorite={toggleFavorite} onOpen={openDetail} />)}</div> : !error && <EmptyState title={`No PGs found in ${cityPage}.`} text="There are no approved listings for this city yet. Please check back soon or explore another city." onAction={() => goTo('discover')} action="Explore other cities" />}
+      </main>}
+
       {screen === 'favorites' && <main className="workspace-page"><div className="workspace-heading"><p className="eyebrow">YOUR PERSONAL SHORTLIST</p><h1>Saved stays<span>.</span></h1><p>All the places you might call home, together in one spot.</p></div>{error && <div className="connection-error"><CircleHelp size={19} /><div><b>We couldn’t load your saved stays.</b><p>{error}</p></div></div>}{visibleItems.length ? <div className="pg-grid">{visibleItems.map((item) => <PGCard key={item._id} item={item} favorite onFavorite={toggleFavorite} onOpen={setDetail} />)}</div> : !error && <EmptyState title="Your shortlist starts here." text="Save a stay you like and it will be waiting for you here." onAction={() => goTo('discover')} action="Explore stays" />}</main>}
 
       {screen === 'profile' && user && <ProfileDashboard user={user} savedItems={favoriteItems} onFavorite={toggleFavorite} onOpen={openDetail} onProfileUpdate={setUser} onLogout={signOut} notificationCount={notificationCount} onNotificationCountChange={setNotificationCount} />}
 
-      {screen === 'owner' && <main className="workspace-page"><div className="workspace-heading owner-heading"><div><p className="eyebrow">OWNER STUDIO</p><h1>Your places<span>.</span></h1><p>Keep your listings and availability up to date.</p></div><button className="button button-primary" onClick={() => setDialog('listing')}><Plus size={17} /> Add a place</button></div>{error && <div className="connection-error"><CircleHelp size={19} /><div><b>Couldn’t load your listings.</b><p>{error}</p></div></div>}<div className="owner-stats"><div><small>ALL LISTINGS</small><b>{ownerItems.length.toString().padStart(2, '0')}</b></div><div><small>LIVE ON ROOMROOT</small><b>{ownerItems.filter((item) => item.status === 'approved').length.toString().padStart(2, '0')}</b></div><div><small>IN REVIEW</small><b>{ownerItems.filter((item) => item.status === 'pending').length.toString().padStart(2, '0')}</b></div></div>{ownerItems.length ? <div className="owner-list">{ownerItems.map((item) => <article className="owner-row" key={item._id}><div className="owner-thumb">{imageFor(item) && <img src={imageFor(item)} alt="" />}</div><div className="owner-row-info"><b>{item.name}</b><span>{item.area} · {money(item.rent)} / month</span></div><span className={`status-pill status-${item.status}`}>{item.status === 'approved' ? 'Live' : item.status === 'pending' ? 'In review' : 'Needs changes'}</span></article>)}</div> : !error && <EmptyState title="Your first place belongs here." text="Share a thoughtful space with students looking for their next home." onAction={() => setDialog('listing')} action="Add your first place" />}<section className="inbox-section"><div className="inbox-heading"><div><p className="eyebrow">STUDENT MESSAGES</p><h2>Enquiries<span>.</span></h2></div><span>{enquiries.filter((item) => item.status === 'new').length} new</span></div>{enquiries.length ? enquiries.map((enquiry) => <article className="enquiry-row" key={enquiry._id}><div className="enquiry-content"><b>{enquiry.studentId?.name || 'Student'} <small>about {enquiry.pgId?.name || 'your stay'}</small></b><p>{enquiry.message}</p><span>{new Date(enquiry.createdAt).toLocaleDateString()} · {enquiry.studentId?.email}</span></div><div className="enquiry-actions"><span className={`status-pill status-${enquiry.status === 'new' ? 'pending' : 'approved'}`}>{enquiry.status}</span>{enquiry.status === 'new' && <button className="button button-outline" onClick={() => updateEnquiry(enquiry._id, 'contacted')}>Mark contacted</button>}</div></article>) : <p className="inbox-empty">Student messages about your stays will appear here.</p>}</section></main>}
+      {screen === 'owner' && <main className="workspace-page"><div className="workspace-heading owner-heading"><div><p className="eyebrow">OWNER STUDIO</p><h1>Your places<span>.</span></h1><p>Keep your listings and availability up to date.</p></div><button className="button button-primary" onClick={() => setDialog('listing')}><Plus size={17} /> Add a place</button></div>{error && <div className="connection-error"><CircleHelp size={19} /><div><b>Couldn’t load your listings.</b><p>{error}</p></div></div>}<div className="owner-stats"><div><small>ALL LISTINGS</small><b>{ownerItems.length.toString().padStart(2, '0')}</b></div><div><small>LIVE ON ROOMROOT</small><b>{ownerItems.filter((item) => item.status === 'approved').length.toString().padStart(2, '0')}</b></div><div><small>IN REVIEW</small><b>{ownerItems.filter((item) => item.status === 'pending').length.toString().padStart(2, '0')}</b></div></div>{ownerItems.length ? <div className="owner-list">{ownerItems.map((item) => <article className="owner-row" key={item._id}><div className="owner-thumb">{imageFor(item) && <img src={imageFor(item)} alt="" />}</div><div className="owner-row-info"><b>{item.name}</b><span>{[item.area, item.city].filter(Boolean).join(', ')} · {money(item.rent)} / month</span></div><span className={`status-pill status-${item.status}`}>{item.status === 'approved' ? 'Live' : item.status === 'pending' ? 'In review' : 'Needs changes'}</span></article>)}</div> : !error && <EmptyState title="Your first place belongs here." text="Share a thoughtful space with students looking for their next home." onAction={() => setDialog('listing')} action="Add your first place" />}<section className="inbox-section"><div className="inbox-heading"><div><p className="eyebrow">STUDENT MESSAGES</p><h2>Enquiries<span>.</span></h2></div><span>{enquiries.filter((item) => item.status === 'new').length} new</span></div>{enquiries.length ? enquiries.map((enquiry) => <article className="enquiry-row" key={enquiry._id}><div className="enquiry-content"><b>{enquiry.studentId?.name || 'Student'} <small>about {enquiry.pgId?.name || 'your stay'}</small></b><p>{enquiry.message}</p><span>{new Date(enquiry.createdAt).toLocaleDateString()} · {enquiry.studentId?.email}</span></div><div className="enquiry-actions"><span className={`status-pill status-${enquiry.status === 'new' ? 'pending' : 'approved'}`}>{enquiry.status}</span>{enquiry.status === 'new' && <button className="button button-outline" onClick={() => updateEnquiry(enquiry._id, 'contacted')}>Mark contacted</button>}</div></article>) : <p className="inbox-empty">Student messages about your stays will appear here.</p>}</section></main>}
 
       {screen === 'admin' && <main className="workspace-page"><div className="workspace-heading"><p className="eyebrow">TRUST & SAFETY</p><h1>Review queue<span>.</span></h1><p>Make sure every stay is ready to welcome someone home.</p></div>{error && <div className="connection-error"><CircleHelp size={19} /><div><b>Couldn’t load the review queue.</b><p>{error}</p></div></div>}<div className="admin-queue-label"><span><Building2 size={17} /> {pending.length} waiting for review</span><span>Oldest first</span></div>{pending.length ? <div className="admin-list">{pending.map((item) => <article className="admin-row" key={item._id}><div className="owner-thumb">{imageFor(item) && <img src={imageFor(item)} alt="" />}</div><div className="admin-row-info"><b>{item.name}</b><span>{item.area} · {money(item.rent)} / month · {item.ownerId?.name || 'Owner'}</span></div><div className="admin-actions"><button className="button button-outline" onClick={() => setDetail(item)}>Preview</button><button className="button button-approve" onClick={() => decideListing(item._id, 'approve')}><Check size={15} /> Approve</button><button className="icon-button reject-button" title="Reject listing" aria-label="Reject listing" onClick={() => decideListing(item._id, 'reject')}><X size={17} /></button></div></article>)}</div> : !error && <EmptyState title="All clear for now." text="New owner listings will appear here when they’re ready for review." />}</main>}
 

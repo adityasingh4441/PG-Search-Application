@@ -14,7 +14,7 @@ export default function PGCard({ item, favorite, distanceLabel, onFavorite, onOp
       </button>
       <button className="pg-copy" onClick={() => onOpen(item)}>
         <span className="pg-card-heading"><strong>{item.name}</strong><span className="rating"><Star size={14} fill="currentColor" /> {item.rating?.toFixed(1) || 'New'}</span></span>
-        <span className="pg-location"><MapPin size={14} /> {item.area}</span>
+        <span className="pg-location"><MapPin size={14} /> {[item.area, item.city].filter(Boolean).join(', ')}</span>
         {distanceLabel && <span className="pg-distance"><MapPin size={12} /> {distanceLabel}</span>}
         <span className="amenity-line">{(item.amenities || []).slice(0, 3).map((amenity) => <span key={amenity}>{amenity === 'Wi-Fi' && <Wifi size={13} />}{amenity}</span>)}</span>
         <span className="pg-card-foot"><span><b>{money(item.rent)}</b> <small>/ month</small></span><span className="card-details">View details <ArrowUpRight size={15} /></span></span>
